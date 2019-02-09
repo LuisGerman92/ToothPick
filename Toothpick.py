@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 # -*- coding: utf-8 -*-
 """
 Created on Sat Feb  2 15:28:54 2019
@@ -8,14 +10,26 @@ Toothpick
 
 Generates a list of pairs of points that can be used to draw the toothpick curve.
 """
+
+import sys # for command line arguments
+
+# Check command line argument
+if (len(sys.argv) != 3):
+    print("Wrong number of command line arguments. Execution stopped")
+    print("Usage: Toothpick.py N filename")
+    exit()
+
+# extract the first (and only argument) as MAX_ITERATIONS
+MAX_ITERATIONS = int(sys.argv[1])
+filename = sys.argv[2]
+
+
 # indices used as constants
 X = 0
 Y = 1
 RIGHT = 0
 LEFT  = 1
 
-# Iterations for the program
-MAX_ITERATIONS = 5
 # current iteration
 n = 1
 
@@ -102,10 +116,17 @@ class Board(object):
                 self.taken_once.append(toothpick.left)
                 log(DEBUG, 'Left edge of toothpick was added to taken_once list.')
 
-            # add the edges of the newly placed toothpick to the ready list for next iteration
-            self.ready.append(toothpick.left)
-            self.ready.append(toothpick.right)
-            log(DEBUG, 'Added both edges of toothpick to the ready list')
+            # add the edges of the newly placed toothpick to the ready list only if they are not in the unavailable list
+            if (toothpick.left in self.unavailable):
+                log(DEBUG, 'Edge in unavailable list. Ignoring edge.')
+            else:
+                log(DEBUG, 'Added left edge of toothpick to the ready list')
+                self.ready.append(toothpick.left)
+            if (toothpick.right in self.unavailable):
+                log(DEBUG, 'Edge in unavailable list. Ignoring edge.')
+            else:
+                log(DEBUG, 'Added right edge of toothpick to the ready list')
+                self.ready.append(toothpick.right)
             return True
         else:
             log(DEBUG, 'Toothpick cannot be placed')
@@ -136,10 +157,12 @@ class Board(object):
             # pop an edge from the ready list
             current_edge = self.ready.pop()
             # expand the current edge to obtain a toothpick
-            expanded_toothpick = self.expand_edge(current_edge, n%2)
-            # add the expanded toothpick to the expanded list
-            self.expanded.append(expanded_toothpick)
-            log(DEBUG, 'Added new toothpick to the expanded list')
+            # expand only if the edge is not on the unavailabel list
+            if (not current_edge in self.unavailable):
+                expanded_toothpick = self.expand_edge(current_edge, n%2)
+                # add the expanded toothpick to the expanded list
+                self.expanded.append(expanded_toothpick)
+                log(DEBUG, 'Added new toothpick to the expanded list')
 
 
     # expands an edge of a toothpick in a given direction to return a new toothpick
@@ -171,8 +194,8 @@ class Board(object):
         log(INFO, str(self.board))
         log(INFO, 'Ready List (edges that will be expanded next:')
         log(INFO, str(self.ready))
-        log(INFO, 'Expanded list (Toothpicks that will be (maybe) placed on the board:')
-        log(INFO, str(self.expanded))
+        log(INFO, 'Unavailable list:')
+        log(INFO, str(self.unavailable))
 
 
 
@@ -221,4 +244,28 @@ while(n < MAX_ITERATIONS):
 
 log(INFO, 'End of calculation phase. Generatig points for plot.')
 
+# Plot the generated points to file ToothpickPoints.txt
+file = open(filename, 'w')
+
+while (not len(board.board) == 0):
+    # Extract toothpick from the board
+    toothpick  = board.board.pop(0)
+    # extract left  point and write to file
+    leftpoint  = toothpick.left
+    left_x     = leftpoint[X]
+    left_y     = leftpoint[Y]
+    leftString = str(left_x) + ', ' + str(left_y) + '\n'
+    file.write(leftString)
+    # extract right point and write to file
+    rightpoint = toothpick.right
+    right_x     = rightpoint[X]
+    right_y     = rightpoint[Y]
+    rightString = str(right_x) + ', ' + str(right_y) + '\n'
+    file.write(rightString)
+    # add a new line and write to file
+    file.write('\n')
+
+log(INFO, 'Generated the gnuplot data file ' + filename)
+
+file.close()
 
