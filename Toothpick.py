@@ -56,7 +56,7 @@ def log(level, message):
             str1 = "[FAILURE] "
         print(str1 + message)
 
-# We define an object for representing a toothpick, which has two enpoints, as
+# We define an object for representing a toothpick, which has two endpoints, as
 # well as a centerpoint.
 class Toothpick(object):
     def __init__(self, left, right, center):
@@ -132,20 +132,13 @@ class Board(object):
             log(DEBUG, 'Toothpick cannot be placed')
             return False
 
-    # Traverses the toothpicks on the board and modifies the taken_once and
-    # unavailable lists accordingly.
-    def audit_board(self):
-        # TODO
-        pass
-
     """
-    This section of the class is realted to expanding the nodes.
+    This section of the class is related to expanding the nodes.
     """
-    ready = []
-    expanded = []
-    direction = LEFT
-    # The board we will be working with
-    board = None
+    ready     = []        # Edges that are ready to be expanded
+    expanded  = []        # Toothpicks that have been expanded
+    direction = LEFT      # Default value, but not used
+    board     = None      # The board we will be working with
 
     # expands all elements on the ready list
     def expand_ready(self):
@@ -156,8 +149,7 @@ class Board(object):
         while (len(self.ready) != 0):
             # pop an edge from the ready list
             current_edge = self.ready.pop()
-            # expand the current edge to obtain a toothpick
-            # expand only if the edge is not on the unavailabel list
+            # expand edge only if it is not on the unavailable list
             if (not current_edge in self.unavailable):
                 expanded_toothpick = self.expand_edge(current_edge, n%2)
                 # add the expanded toothpick to the expanded list
@@ -201,11 +193,12 @@ class Board(object):
 
 """
  Program start
- Flow:
-     1- Expand all edges in the ready list, this will put toothpicks in the expanded list.
-     2- For every toothpick in the expanded list, decide if we should place the toothpick or not.
-         2.1- The toothpcicks that we can be placed, will be appended to the place_next list.
-     3- place all toothpicks in the next list.
+ The program does the following:
+     1- Create an initial toothpick and board, and place the toothpick on the board.
+     2- Next, the program iterates as follows:
+        Expand all edges in the ready list; this will put toothpicks in the expanded list.
+        process all the toothpicks from the expanded list. This means, place them in the board if allowed.
+     3- When iterations have completed, write the toothpicks to a file, so that it can be plotted using gnuplot.
 """
 # Begin by placing a toothpick at center (0,0) and edges at (1,1) and (-1,-1).
 # In this case, define a 45° orientation as True, and -45° orientation as False.
